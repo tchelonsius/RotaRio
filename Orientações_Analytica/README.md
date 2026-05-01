@@ -4,7 +4,7 @@
 
 Este documento descreve as fontes de dados utilizadas e o dicionário das bases relacionadas ao sistema de transportes (SMTR), além de fontes públicas complementares recomendadas para o desenvolvimento de soluções no contexto do hackathon.
 
-![banner](./banner.jpeg)
+![banner](banner.jpeg)
 
 ---
 
