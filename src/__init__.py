@@ -6,12 +6,9 @@ from custom_model_builder import build_save_cmodel, generate_areas
 import os
 
 # data paths
-# limites_path = os.environ.get("LIMITES_PATH")
-# crossfire_path = os.environ.get("CROSSFIRE_PATH")
-# custom_model_path = os.environ.get("CMODEL_PATH")
-limites_path = r"C:\Users\marce\Documents\UFRJ\Analytica - Processo Seletivo\Limite_do_MunicADpio_do_Rio_de_Janeiro.geojson"
-crossfire_path = r"C:\Users\marce\Documents\UFRJ\Analytica - Processo Seletivo\fc_api_occurrences_with_victims_detailed_2026-04-30T12_36_30.000Z.csv"
-custom_model_path = r"C:\Users\marce\Documents\UFRJ\Analytica - Processo Seletivo\graphhopper\my_car.json"
+limites_path = os.environ.get("LIMITES_PATH")
+crossfire_path = os.environ.get("CROSSFIRE_PATH")
+custom_model_path = os.environ.get("CMODEL_PATH")
 
 # CONSTANTES:
 t_atual = pd.Timestamp.today()
