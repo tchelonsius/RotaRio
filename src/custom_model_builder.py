@@ -27,9 +27,15 @@ def build_custom_model(areas):
         }
       }
         factor = 1/area[-1]
-        params["priority"].append({"if": "in_custom"+str(aux),"multiply_by":factor})
+        params["priority"].append({"else_if": "in_custom"+str(aux),"multiply_by":factor})
         params["areas"]["features"].append(feature)
         aux+=1
+    # Transforma o primeiro else_if em if
+    params["priority"][0] = {
+            "if": "in_custom0",
+            "multiply_by": 1/areas[0][-1]
+        }
+
     print("CUSTOM MODEL PRONTO!\n")
     return params
 
@@ -37,7 +43,7 @@ def generate_areas(gdf_relevant):
     print("\n--- GERANDO ÁREAS DE RISCO PARA O CUSTOM MODEL...\n")
     areas = []
     linhas = gdf_relevant.shape[0]
-    for f in range(1500):
+    for f in range(linhas):
         coords = list(gdf_relevant.iloc[f]["geometry"].exterior.coords)
         coords.append(gdf_relevant.iloc[f]["peso_log"])
         areas.append(coords)
