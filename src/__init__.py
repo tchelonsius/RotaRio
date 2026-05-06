@@ -1,35 +1,53 @@
 import pandas as pd
-import numpy as np
 from subareas_divider import gera_subareas_rj
-from weights_estimator import calcula_peso_bruto, atribuir_pesos_hexagonos, PESO_TIPO
+from weights_estimator import calcula_peso_bruto, atribuir_pesos_hexagonos
 from custom_model_builder import build_save_cmodel, generate_areas
 import os
+import visualization
+import geopandas as gpd
 
-# data paths
-limites_path = os.environ.get("LIMITES_PATH")
-crossfire_path = os.environ.get("CROSSFIRE_PATH")
-custom_model_path = os.environ.get("CMODEL_PATH")
+""" Data Paths """
+limites_path = os.getenv("LIMITES_PATH").strip('"')
+crossfire_path = os.getenv("CROSSFIRE_DATA").strip('"')
+custom_model_path = os.getenv("CMODEL_PATH").strip('"')
 
-# CONSTANTES:
-t_atual = pd.Timestamp.today()
-meia_vida = 4
+""" CONSTANTES """
+# pesos por tipo de crime (ajuste conforme sua realidade)
+PESO_TIPO = {
+    "Homicidio/Tentativa": 7.0,
+    "Tentativa/Roubo": 5.0,
+    "Operação policial":  9.0,
+    "Ação policial": 8.0,
+    "tiros a esmo": 7.0,
+    "Tentativa/Roubo de cargas": 6.0,
+    "Não identificado": 7.0,
+}
+T_ATUAL = pd.Timestamp.today()
+MEIA_VIDA = 4
 
-# lê arquivos necessários e gera subáreas no município
+""" lê arquivos necessários e gera subáreas no município """
+# GeoJSON do município
+gdf = gpd.read_file(limites_path)
 df = pd.read_csv(crossfire_path)
-gdf_hex = gera_subareas_rj(limites_path)
 
-# calcula peso de cada ocorrência
-df = calcula_peso_bruto(df,PESO_TIPO, t_atual, meia_vida)
+""" divide o Município em subáreas e retorna um gdf com um id e os pontos de cada hexágono """
+gdf_hex = gera_subareas_rj(gdf)
 
-# calcula peso de cada hexágono, considerando cada ocorrência de dentro dele
+""" calcula peso de cada ocorrência """
+df = calcula_peso_bruto(df, PESO_TIPO, T_ATUAL, MEIA_VIDA)
+
+""" calcula peso (bruto, suavizado e normalizado) de cada hexágono, considerando cada ocorrência de dentro dele """
 gdf_resultado = atribuir_pesos_hexagonos(gdf_hex, df)
 
-# normalizamos o peso para um valor entre 0 e 10 com a função log
-gdf_resultado["peso_log"] = np.log1p(gdf_resultado["peso_suavizado"])
-
-# queremos alterar a prioridade apenas das áreas que tiverem risco maior que 1
+""" queremos alterar a prioridade apenas das áreas que tiverem risco maior que 1 """
 gdf_relevant = gdf_resultado[gdf_resultado["peso_log"] > 1].reset_index(drop=True)
+
+""" gerando áreas de risco com base nos pontos e nos pesos normalizados """
 areas = generate_areas(gdf_relevant)
+
+""" constrói e salva o modelo customizado para ser utilizado no Graphhopper """
 build_save_cmodel(custom_model_path, areas)
 
-
+""" funções para gerar visualizações gráficas com a biblioteca folium """
+# visualization.visualizacao_hexagonos(gdf_hex)
+# visualization.visualizacao_crimes(gdf_hex, gdf_resultado,coluna="peso_bruto", nome_arquivo="mapa_crimes_bruto.html")
