@@ -1,24 +1,7 @@
 import h3
 import pandas as pd
-import geopandas as gpd
 from collections import defaultdict
 import numpy as np
-from subareas_divider import gera_subareas_rj
-
-# limites_path = r"C:\Users\marce\Documents\UFRJ\Analytica - Processo Seletivo\Limite_do_MunicADpio_do_Rio_de_Janeiro.geojson"
-# path_crossfire_data = r"C:\Users\marce\Documents\UFRJ\Analytica - Processo Seletivo\fc_api_occurrences_with_victims_detailed_2026-04-30T12_36_30.000Z.csv"
-# df = pd.read_csv(path_crossfire_data)
-
-# Exemplo de pesos por tipo de crime (ajuste conforme sua realidade)
-PESO_TIPO = {
-    "Homicidio/Tentativa": 7.0,
-    "Tentativa/Roubo": 5.0,
-    "Operação policial":  9.0,
-    "Ação policial": 8.0,
-    "tiros a esmo": 7.0,
-    "Tentativa/Roubo de cargas": 6.0,
-    "Não identificado": 7.0,
-}
 
 def calcula_peso_tipo(df, mapa_peso_tipo):
     # Mapear peso por tipo
@@ -31,7 +14,6 @@ def calcula_peso_recencia(df, t_atual, meia_vida):
     dt = pd.to_datetime(df["data"], dayfirst=True, errors="coerce")
     df["data_timestamp"] = dt.dt.normalize()
     df["hora_timestamp"] = dt.dt.time
-    # df["hora"] = pd.to_datetime(df["hora_timestamp"].astype(str),errors="coerce").dt.hour
     df["hora"] = pd.to_datetime(
         df["hora_timestamp"],
         format="%d/%m/%Y, %H:%M:%S",
@@ -50,7 +32,7 @@ def calcula_peso_bruto(df, mapa_peso_tipo, t_atual, meia_vida):
     print("PESOS BRUTOS CALCULADOS!\n")
     return df
 
-def atribuir_pesos_hexagonos(gdf_hex, df_crimes, col_peso: str = "peso_bruto", resolucao_h3: int = 9, decaimento: float = 0.5, niveis_suavizacao: int = 2,):
+def atribuir_pesos_hexagonos(gdf_hex, df_crimes, col_peso: str = "peso_bruto", resolucao_h3: int = 8, decaimento: float = 0.5, niveis_suavizacao: int = 2,):
     """
     Atribui a cada hexágono H3 um peso suavizado com base em ocorrências criminais.
     Retorna GeoDataFrame igual ao gdf_hex, com a coluna 'peso_suavizado' adicionada.
@@ -102,56 +84,10 @@ def atribuir_pesos_hexagonos(gdf_hex, df_crimes, col_peso: str = "peso_bruto", r
     gdf_resultado["peso_suavizado"] = gdf_resultado["hex_id"].map(
         lambda h: pesos_suavizados.get(h, 0.0)
     )
+
+    # normalizamos o peso para um valor entre 0 e 10 com a função log
+    gdf_resultado["peso_log"] = np.log1p(gdf_resultado["peso_suavizado"])
+
+    print(gdf_resultado.tail().to_string())
     print("PESOS ATRIBUÍDOS AOS HEXÁGONOS!\n")
     return gdf_resultado
-
-# tatual = pd.Timestamp.today()
-# lambda_ = np.log(2) / 4
-# calcula_peso_bruto(df,PESO_TIPO, tatual, lambda_)
-# gdf_hex = gera_subareas_rj(limites_path)
-# gdf_resultado = atribuir_pesos_hexagonos(gdf_hex, df)
-
-# print(gdf_resultado.to_string())
-# gdf_resultado["peso_log"] = np.log1p(gdf_resultado["peso_suavizado"])
-# print(gdf_resultado[gdf_resultado["peso_bruto"] > 0.0].count())
-# print(df.head().to_string())
-# print(gdf_resultado.head().to_string())
-# print(gdf_resultado[gdf_resultado["peso_log"] == 0].count())
-
-""" VISUALIZAÇÃO """
-# m = folium.Map(location=[-22.9, -43.2], zoom_start=10)
-#
-# peso_max = gdf_resultado["peso_log"].max()
-# colormap = cm.linear.YlOrRd_09.scale(0, peso_max)
-#
-# def estilo(feature):
-#     peso = feature["properties"]["peso_log"]
-#     return {
-#         "color": "#333333",
-#         "weight": 0.3,
-#         "fillColor": colormap(peso),
-#         "fillOpacity": 0.7,
-#     }
-#
-# folium.GeoJson(
-#     gdf_resultado.__geo_interface__,
-#     name="Peso Log",
-#     style_function=estilo,
-#     tooltip=folium.GeoJsonTooltip(fields=["hex_id", "peso_bruto", "peso_suavizado", "peso_log"]),
-# ).add_to(m)
-#
-# # Contorno do município por cima
-# folium.GeoJson(
-#     gdf.__geo_interface__,
-#     name="Limite do Município",
-#     style_function=lambda f: {
-#         "color": "#000000",
-#         "weight": 2,
-#         "fillOpacity": 0,
-#     }
-# ).add_to(m)
-#
-# colormap.caption = "Peso Suavizado de Crimes"
-# colormap.add_to(m)
-# folium.LayerControl().add_to(m)
-# m.save("mapa_crimes_suavizado.html")
