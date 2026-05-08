@@ -52,25 +52,26 @@ class BusRouteFinder():
         print("nao foram achadas rotas em um raio de 1km de proximidade")
         return close_routes  # returns empty
     
-    def find_bus(self, df_matching_rt, close_routes):
-        shape_ids = close_routes["shape_id"]
+    #the parameter should receive the secure routes if you desire to find the busses of the secure routes
+    def find_bus(self, df_matching_rt, routes):
+        shape_ids = routes["shape_id"]
         # look for matchs in shape id from close routes to shape id from mathing_rt(routes and trips)
         buses = df_matching_rt[df_matching_rt["shape_id"].isin(shape_ids)]
         
         return buses
 
-    def find_secure_route(self, gdf_relevant, routes):
+    
+    def find_secure_route(self, gdf_relevant, close_routes):
         # change the crs to be equal
-        gdf_relevant = gdf_relevant.to_crs(routes.crs)
-        gdf_peso = gdf_relevant[["peso_log", "geometry"]]
+        gdf_relevant = gdf_relevant.to_crs(close_routes.crs)
 
         #get the intersections and sums the pesos_log 
 
-        intersections = gpd.sjoin(routes, gdf_relevant, predicate="intersects")
+        intersections = gpd.sjoin(close_routes, gdf_relevant, predicate="intersects")
         risk_scores = (intersections.groupby("shape_id")["peso_log"].sum().reset_index())
         
         #return the routes with theyr respective score
-        secure_routes = routes.merge(risk_scores, on="shape_id")
+        secure_routes = close_routes.merge(risk_scores, on="shape_id")
 
         #sort for the safest order
         secure_routes = secure_routes.sort_values("peso_log")
