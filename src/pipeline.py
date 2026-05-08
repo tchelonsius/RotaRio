@@ -7,6 +7,20 @@ import os
 import geopandas as gpd
 from dotenv import load_dotenv
 
+"""
+
+retorna um dict da forma: 
+
+    return {
+        "gdf": gdf,
+        "df": df,
+        "gdf_hex": gdf_hex,
+        "gdf_resultado": gdf_resultado,
+        "gdf_relevant": gdf_relevant,
+        "areas": areas,
+    }
+
+"""
 
 def run_pipeline():
     load_dotenv()

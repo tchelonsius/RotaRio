@@ -11,3 +11,8 @@ __pycache__/
 /dados
 /notebooks/transp
 /transportes
+
+/src/shapes_geom.csv
+/src/routes.csv
+/src/stops.csv
+/src/trips.csv
