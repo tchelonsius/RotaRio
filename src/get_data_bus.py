@@ -46,6 +46,4 @@ def get_data_bus():
     return {"gdf_shapes": gdf_shapes,
             "df_matching_rt": df_matching}
 
-retorno = get_data_bus()
 
-print(retorno)

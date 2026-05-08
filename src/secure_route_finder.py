@@ -35,4 +35,7 @@ class SecureRouteFinder():
         shape_ids = close_routes["shape_id"]
         # look for matchs in shape id from close routes to shape id from mathing_rt(routes and trips)
         buses = self.df_matching_rt[self.df_matching_rt["shape_id"].isin(shape_ids)]
+        
+        return buses
 
+    
