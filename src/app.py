@@ -26,15 +26,23 @@ df_matching_rt = bus_data["df_matching_rt"]
 router = BusRouteFinder()
 
 # return a geoDataFrame with the secure routes + their respective busses, in order from the safest to the least safe
-@app.route('/secure_bus_routes')
+@app.route('/secure_bus_routes') 
 def secure_bus_routes():
-    arr = request.args.get('arr') # get the cords from the destiny with the user
-    arr = [float(x) for x in arr.split(',')] # converts str into float
 
-    if not arr:
-        return jsonify({"error": "arr param must be set,arr=[lon,lat]"}), 400
+    #destination cords
+    destination = request.args.get('destination') # get destiny cords
+    origin = request.args.get('origin') # get user cords (origin)
+    if not destination or not origin:
+        return jsonify({"error": "destination param must be set, -> destination=[lon,lat]"}), 400
     else:
-        close_routes = router.find_close_routes(arr=arr, gdf_shapes=gdf_shapes)
+        destination = [float(x) for x in destination.split(',')] # converts str into float
+        origin = [float(x) for x in origin.split(',')] # converts str into float
+
+        #secure_route_finder pipeline
+        close_routes = router.find_close_routes(destination=destination, gdf_shapes=gdf_shapes, origin=origin)
+        if isinstance(close_routes, str) or close_routes.empty:
+            return jsonify({"error": "nenhuma rota encontrada entre os dois pontos"}), 404
+
         secure_routes = router.find_secure_route(gdf_relevant=gdf_relevant,close_routes=close_routes)
         secure_busses = router.find_bus(df_matching_rt=df_matching_rt, routes=secure_routes)
         print("converting to json . . .")
@@ -44,27 +52,5 @@ def secure_bus_routes():
 
 
 
-
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)
-
-
-
-
-
-
-
-
-"""bus router """
-# import folium
-# print('RUNNING............')
-
-
-
-
-
-# finder = BusRouteFinder()
-# close_routes = finder.find_close_routes(gdf_shapes=gdf_shapes,arr=[-43.1729,-22.9068])
-# print(f'CLOSE ROUTES:"{close_routes}"')
-# busses = finder.find_bus(close_routes=close_routes,df_matching_rt=df_matching_rt)
-# print(f'BUSSES:"{busses}"')
