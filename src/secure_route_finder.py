@@ -57,18 +57,22 @@ class BusRouteFinder():
         shape_ids = routes["shape_id"]
         # look for matchs in shape id from close routes to shape id from mathing_rt(routes and trips)
         buses = df_matching_rt[df_matching_rt["shape_id"].isin(shape_ids)]
+
+        #dropping duplicates
+        buses = buses.drop_duplicates(subset=["route_id", "shape_id"])
         
         return buses
 
     
     def find_secure_route(self, gdf_relevant, close_routes):
-        # change the crs to be equal
+        # change the crs to be equal   
         gdf_relevant = gdf_relevant.to_crs(close_routes.crs)
 
         #get the intersections and sums the pesos_log 
 
         intersections = gpd.sjoin(close_routes, gdf_relevant, predicate="intersects")
         risk_scores = (intersections.groupby("shape_id")["peso_log"].sum().reset_index())
+        print("created the risk scores")
         
         #return the routes with theyr respective score
         secure_routes = close_routes.merge(risk_scores, on="shape_id")
