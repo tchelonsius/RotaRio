@@ -59,18 +59,18 @@ class BusRouteFinder():
         
         return buses
 
-    def find_secure_route(self, gdf_relevant, close_routes):
+    def find_secure_route(self, gdf_relevant, routes):
         # change the crs to be equal
-        gdf_relevant = gdf_relevant.to_crs(close_routes.crs)
+        gdf_relevant = gdf_relevant.to_crs(routes.crs)
         gdf_peso = gdf_relevant[["peso_log", "geometry"]]
 
         #get the intersections and sums the pesos_log 
 
-        intersections = gpd.sjoin(close_routes, gdf_relevant, predicate="intersects")
+        intersections = gpd.sjoin(routes, gdf_relevant, predicate="intersects")
         risk_scores = (intersections.groupby("shape_id")["peso_log"].sum().reset_index())
         
         #return the routes with theyr respective score
-        secure_routes = close_routes.merge(risk_scores, on="shape_id")
+        secure_routes = routes.merge(risk_scores, on="shape_id")
 
         #sort for the safest order
         secure_routes = secure_routes.sort_values("peso_log")
