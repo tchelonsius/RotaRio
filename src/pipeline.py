@@ -80,4 +80,5 @@ def run_pipeline():
     }
 
 if __name__ == "__main__":
-    run_pipeline()
+    retorno = run_pipeline()
+    print(retorno["gdf_relevant"])

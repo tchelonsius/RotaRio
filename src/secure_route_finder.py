@@ -7,9 +7,9 @@ from shapely import wkt
 
 
 class BusRouteFinder():
-    def __init__(self, gdf_relevant) -> None:
-        self.gdf_relevant = gdf_relevant
-    def find_close_routes(self,arr: list, gdf_shapes, df_matching_rt):
+    def __init__(self) -> None:
+        pass
+    def find_close_routes(self,arr: list, gdf_shapes):
         """get user cords on the map"""
 
         lgn = arr[0]
@@ -38,7 +38,7 @@ class BusRouteFinder():
         return buses
 
     def find_secure_route(self, gdf_relevant):
-        gdf_peso = gdf_relevant[gdf_relevant["peso_log", "geometry"]]
+        gdf_peso = gdf_relevant[["peso_log", "geometry"]]
         return gdf_peso
 
 
