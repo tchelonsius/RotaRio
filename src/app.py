@@ -2,10 +2,10 @@ from src.secure_route_finder import BusRouteFinder
 from src.get_data_bus import get_data_bus
 from src.pipeline import run_pipeline
 from flask import Flask, request, jsonify
-import pandas as pd
-import geopandas as gpd
+from flask_cors import CORS
 
 app = Flask('__name__')
+CORS(app)
 
 # run map pipeline
 print('LOADING PIPELINE DATA. . .')
@@ -45,9 +45,24 @@ def secure_bus_routes():
 
         secure_routes = router.find_secure_route(gdf_relevant=gdf_relevant,close_routes=close_routes)
         secure_busses = router.find_bus(df_matching_rt=df_matching_rt, routes=secure_routes)
+
+        secure_busses = secure_busses.drop_duplicates(subset=["shape_id"])#drop duplicates
+
+        # adiciona a geometria das rotas
+        secure_busses = secure_busses.merge(
+        gdf_shapes[["shape_id", "shape"]],
+        on="shape_id",
+        how="left"
+        )
+
+        # converte LineString para WKT string
+        secure_busses["shape"] = secure_busses["shape"].apply(lambda x: x.wkt if x != "" else "")
+
+
         print("converting to json . . .")
         #retorna as rotas seguras e seus respectivos onibus em formato de dict
-        return jsonify(secure_busses.to_dict(orient='records')), 200 
+        secure_busses = secure_busses.fillna(value="")
+        return jsonify(secure_busses.to_dict(orient='records')), 200
 
 
 

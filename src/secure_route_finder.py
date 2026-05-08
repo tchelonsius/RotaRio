@@ -32,7 +32,7 @@ class BusRouteFinder():
 
         # buffer for origin
         origin_routes = gpd.GeoDataFrame()
-        for radius in [300, 500, 1000]:
+        for radius in [300, 500, 1000, 2000, 3000]:
             buf = origin_meters.buffer(radius)
             origin_routes = gdf_shapes_meters[gdf_shapes_meters.intersects(buf)]
             if not origin_routes.empty:
@@ -45,7 +45,7 @@ class BusRouteFinder():
 
         # buffer for destination
         destination_routes = gpd.GeoDataFrame()
-        for radius in [300, 500, 1000]:
+        for radius in [300, 500, 1000, 2000, 3000]:
             buf = destination_meters.buffer(radius)
             destination_routes = gdf_shapes_meters[gdf_shapes_meters.intersects(buf)]
             if not destination_routes.empty:
