@@ -9,25 +9,30 @@ from shapely import wkt
 class BusRouteFinder():
     def __init__(self) -> None:
         pass
+
+    #find close bus routes from the destiny cords from the arr parameter
     def find_close_routes(self,arr: list, gdf_shapes):
-        """get user cords on the map"""
+
+        #get user cords on the map
 
         lgn = arr[0]
         lat = arr[1]
         destiny = Point(lgn, lat)
-        """-------------------------"""
+
+        #match the crs
 
         gdf_destiny = gpd.GeoSeries([destiny], crs='EPSG:4326')
 
         gdf_shapes_meters = gdf_shapes.to_crs("EPSG:31983")
         destiny_meters = gdf_destiny.to_crs("EPSG:31983").iloc[0]
 
-        """create 300m buffer from destiny point to find close routes"""
+        #create 300m buffer from destiny point to find close routes
 
         buffer = destiny_meters.buffer(300)
 
         close_routes = gdf_shapes_meters[gdf_shapes_meters.intersects(buffer)]
 
+        #return a geoDataSet with the close routes listed by sfest to least safe
         return close_routes
     
     def find_bus(self, df_matching_rt, close_routes):
@@ -39,9 +44,7 @@ class BusRouteFinder():
 
     def find_secure_route(self, gdf_relevant, close_routes):
         # change the crs to be equal
-        gdf_relevant = gdf_relevant.to_crs(
-        close_routes.crs
-    )
+        gdf_relevant = gdf_relevant.to_crs(close_routes.crs)
         gdf_peso = gdf_relevant[["peso_log", "geometry"]]
 
         #get the intersections and sums the pesos_log 
