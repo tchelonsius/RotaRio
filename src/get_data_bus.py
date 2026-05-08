@@ -43,7 +43,8 @@ def get_data_bus():
     gdf_start_points = gdf_start_points.set_crs(epsg=4326)
     gdf_end_points = gdf_end_points.set_crs(epsg=4326)
 
-    return {"gdf_shapes": gdf_shapes}
+    return {"gdf_shapes": gdf_shapes,
+            "df_matching_rt": df_matching}
 
 retorno = get_data_bus()
 

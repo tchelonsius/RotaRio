@@ -7,10 +7,9 @@ from shapely import wkt
 
 
 class SecureRouteFinder():
-    def __init__(self, gdf_shapes, df_trips, df_routes) -> None:
+    def __init__(self, gdf_shapes, df_matching_rt) -> None:
         self.gdf_shapes = gdf_shapes
-        self.df_trips = df_trips
-        self.df_routes = df_routes
+        self.df_matching_rt = df_matching_rt
     def find_close_routes(self,arr: list):
         """get user cords on the map"""
 
@@ -32,6 +31,8 @@ class SecureRouteFinder():
 
         return close_routes
     
-    def find_bus(self,close_routes):
-
+    def find_bus(self, close_routes):
+        shape_ids = close_routes["shape_id"]
+        # look for matchs in shape id from close routes to shape id from mathing_rt(routes and trips)
+        buses = self.df_matching_rt[self.df_matching_rt["shape_id"].isin(shape_ids)]
 
