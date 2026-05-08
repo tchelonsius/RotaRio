@@ -1,7 +1,7 @@
 import pandas as pd
-from .subareas_divider import gera_subareas_rj
-from .weights_estimator import calcula_peso_bruto, atribuir_pesos_hexagonos
-from .custom_model_builder import build_save_cmodel, generate_areas
+from src.subareas_divider import gera_subareas_rj
+from src.weights_estimator import calcula_peso_bruto, atribuir_pesos_hexagonos
+from src.custom_model_builder import build_save_cmodel, generate_areas
 import os
 # import visualization
 import geopandas as gpd
@@ -78,7 +78,3 @@ def run_pipeline():
         "gdf_relevant": gdf_relevant,
         "areas": areas,
     }
-
-if __name__ == "__main__":
-    retorno = run_pipeline()
-    print(retorno["gdf_relevant"])

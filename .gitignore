@@ -16,4 +16,3 @@ __pycache__/
 /src/routes.csv
 /src/stops.csv
 /src/trips.csv
-/src/app.py
