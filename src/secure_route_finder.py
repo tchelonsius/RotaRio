@@ -18,6 +18,7 @@ class BusRouteFinder():
         lgn = arr[0]
         lat = arr[1]
         destiny = Point(lgn, lat)
+        print(f'DESTINY POINTS:[lon:"{lgn}", lat:"{lat}"]')
 
         #match the crs
 
@@ -26,14 +27,30 @@ class BusRouteFinder():
         gdf_shapes_meters = gdf_shapes.to_crs("EPSG:31983")
         destiny_meters = gdf_destiny.to_crs("EPSG:31983").iloc[0]
 
-        #create 300m buffer from destiny point to find close routes
+        #create 300m buffer wich grows until find routes
 
-        buffer = destiny_meters.buffer(300)
+        buffer300 = destiny_meters.buffer(300)
+        close_routes = gdf_shapes_meters[gdf_shapes_meters.intersects(buffer300)]
+        if not close_routes.empty:
+            print("found in 300m buffer")
+            return close_routes
 
-        close_routes = gdf_shapes_meters[gdf_shapes_meters.intersects(buffer)]
+        # 500m
+        buffer500 = destiny_meters.buffer(500)
+        close_routes = gdf_shapes_meters[gdf_shapes_meters.intersects(buffer500)]
+        if not close_routes.empty:
+            print("found in 500m buffer")
+            return close_routes
 
-        #return a geoDataSet with the close routes listed by sfest to least safe
-        return close_routes
+        # 1000m
+        buffer1000 = destiny_meters.buffer(1000)
+        close_routes = gdf_shapes_meters[gdf_shapes_meters.intersects(buffer1000)]
+        if not close_routes.empty:
+            print("found in 1000m buffer")
+            return close_routes
+
+        print("nao foram achadas rotas em um raio de 1km de proximidade")
+        return close_routes  # returns empty
     
     def find_bus(self, df_matching_rt, close_routes):
         shape_ids = close_routes["shape_id"]
