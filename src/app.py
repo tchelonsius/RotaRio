@@ -1,11 +1,22 @@
-# from src.secure_route_finder import BusRouteFinder
-# from src.get_data_bus import get_data_bus
-# from src.pipeline import run_pipeline
+from src.secure_route_finder import BusRouteFinder
+from src.get_data_bus import get_data_bus
+from src.pipeline import run_pipeline
 from flask import Flask, request, jsonify
 
 app = Flask('__name__')
 
-@app.route('/')
+#get bus data before server starts
+print("API RotaRio: LOADING. . .")
+bus_data = get_data_bus()
+
+gdf_shapes = bus_data["gdf_shapes"]
+print(f'GDF SHAPES ="{gdf_shapes}"')
+
+df_matching_rt = bus_data["df_matching_rt"]
+print(f'MATCHING_DF = "{df_matching_rt}"')
+
+
+@app.route('/get_safe_bus_routes')
 def home():
     return 'hello'
 
@@ -27,14 +38,7 @@ if __name__ == "__main__":
 # import folium
 # print('RUNNING............')
 
-# #get bus data before starts
-# bus_data = get_data_bus()
 
-# gdf_shapes = bus_data["gdf_shapes"]
-# print(f'GDF SHAPES ="{gdf_shapes}"')
-
-# df_matching_rt = bus_data["df_matching_rt"]
-# print(f'MATCHING_DF = "{df_matching_rt}"')
 
 
 
