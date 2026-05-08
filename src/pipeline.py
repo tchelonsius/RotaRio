@@ -1,12 +1,26 @@
 import pandas as pd
-from .subareas_divider import gera_subareas_rj
-from .weights_estimator import calcula_peso_bruto, atribuir_pesos_hexagonos
-from .custom_model_builder import build_save_cmodel, generate_areas
+from src.subareas_divider import gera_subareas_rj
+from src.weights_estimator import calcula_peso_bruto, atribuir_pesos_hexagonos
+from src.custom_model_builder import build_save_cmodel, generate_areas
 import os
 # import visualization
 import geopandas as gpd
 from dotenv import load_dotenv
 
+"""
+
+retorna um dict da forma: 
+
+    return {
+        "gdf": gdf,
+        "df": df,
+        "gdf_hex": gdf_hex,
+        "gdf_resultado": gdf_resultado,
+        "gdf_relevant": gdf_relevant,
+        "areas": areas,
+    }
+
+"""
 
 def run_pipeline():
     load_dotenv()
@@ -64,6 +78,3 @@ def run_pipeline():
         "gdf_relevant": gdf_relevant,
         "areas": areas,
     }
-
-if __name__ == "__main__":
-    run_pipeline()
