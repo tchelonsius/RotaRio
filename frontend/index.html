@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>RotaRio</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; }
+        #map { height: 100vh; }
+
+        /* ---- Logo ---- */
+        #logo {
+            position: absolute;
+            top: 16px; left: 80px;
+            z-index: 1000;
+            background: #003399;
+            padding: 7px 14px 7px 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+            display: flex; align-items: center; gap: 10px;
+        }
+        #logo .logo-stripe {
+            width: 4px; height: 36px; border-radius: 2px;
+            background: linear-gradient(to bottom, #FFD700 50%, #009c3b 50%);
+        }
+        #logo .logo-content { display: flex; flex-direction: column; }
+        #logo .logo-text { font-size: 17px; font-weight: 900; color: #fff; letter-spacing: 0.5px; }
+        #logo .logo-text span { color: #FFD700; }
+        #logo .logo-sub { font-size: 7px; color: #aac4ff; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 1px; }
+
+        /* ---- Top panel ---- */
+        #panel {
+            position: absolute;
+            top: 16px; left: 50%; transform: translateX(-50%);
+            z-index: 1000;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column;
+            min-width: 310px;
+            overflow: hidden;
+        }
+        .panel-header {
+            background: #003399;
+            padding: 6px 14px;
+            font-size: 9px; font-weight: 700;
+            color: #aac4ff; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .panel-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+        .panel-row  { display: flex; gap: 8px; align-items: center; }
+
+        .btn {
+            padding: 6px 11px;
+            border: 1.5px solid transparent;
+            border-radius: 3px;
+            cursor: pointer; font-size: 11px; font-weight: 700;
+            transition: all 0.15s; white-space: nowrap;
+        }
+        .btn:hover:not(:disabled) { filter: brightness(1.08); }
+        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        #btn-origin { background: #003399; color: #fff; border-color: #003399; }
+        #btn-dest   { background: #fff; color: #CC0000; border-color: #CC0000; }
+        #btn-search {
+            background: #FFD700; color: #003399;
+            width: 100%; padding: 8px;
+            font-size: 11px; font-weight: 900;
+            border-radius: 3px; border: none;
+            letter-spacing: 1px;
+        }
+        #btn-search:not(:disabled):hover { background: #ffc800; }
+
+        .info-row { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+        .info-item { font-size: 10px; color: #666; display: flex; align-items: center; gap: 5px; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .dot.blue { background: #003399; }
+        .dot.red  { background: #CC0000; }
+        .dot.gray { background: #ccc; }
+
+        .divider { height: 1px; background: #eee; margin: 0; }
+
+        /* ---- Hint ---- */
+        #hint {
+            position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+            z-index: 1000;
+            background: #003399; color: #FFD700;
+            padding: 6px 18px; border-radius: 3px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+            display: none; pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,51,0.25);
+        }
+
+        /* ---- Results ---- */
+        #results {
+            position: absolute; bottom: 28px; right: 16px;
+            z-index: 1000;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 10px rgba(0,0,0,0.15);
+            min-width: 255px; max-width: 290px;
+            display: none;
+            overflow: hidden;
+        }
+        .results-header {
+            background: #003399;
+            padding: 7px 14px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .results-header span {
+            font-size: 9px; font-weight: 700;
+            color: #aac4ff; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .results-header .dot-row { display: flex; gap: 4px; }
+        .results-header .dot-row i {
+            width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+        }
+        .results-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+
+        .route-card {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 10px; border-radius: 3px;
+            border-left: 3px solid;
+            background: #fafafa;
+        }
+        .route-card.rank-1 { border-color: #00C853; background: #f1fff6; }
+        .route-card.rank-2 { border-color: #FF6D00; background: #fff8f3; }
+        .route-card.rank-3 { border-color: #D50000; background: #fff3f3; }
+
+        .route-badge {
+            width: 28px; height: 28px; border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 900; flex-shrink: 0;
+        }
+        .rank-1 .route-badge { background: #00C853; color: #fff; }
+        .rank-2 .route-badge { background: #FF6D00; color: #fff; }
+        .rank-3 .route-badge { background: #D50000; color: #fff; }
+
+        .route-info { flex: 1; min-width: 0; }
+        .route-line-num { font-size: 13px; font-weight: 900; color: #111; }
+        .route-name     { font-size: 10px; color: #777; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .route-label    { font-size: 9px; font-weight: 700; margin-top: 3px; letter-spacing: 0.5px; text-transform: uppercase; }
+        .rank-1 .route-label { color: #00C853; }
+        .rank-2 .route-label { color: #FF6D00; }
+        .rank-3 .route-label { color: #D50000; }
+
+        .results-footer {
+            padding: 6px 12px;
+            font-size: 9px; color: #aaa; text-align: center;
+            border-top: 1px solid #eee;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="logo">
+    <div class="logo-stripe"></div>
+    <div class="logo-content">
+        <div class="logo-text">Rota<span>Rio</span></div>
+        <div class="logo-sub">Mobilidade Urbana</div>
+    </div>
+</div>
+
+<div id="panel">
+    <div class="panel-header">Sistema de Rotas Seguras</div>
+    <div class="panel-body">
+        <div class="panel-row">
+            <button class="btn" id="btn-origin">&#9679; Origem</button>
+            <button class="btn" id="btn-dest">&#9679; Destino</button>
+            <div class="info-row">
+                <div class="info-item"><div class="dot gray" id="dot-origin"></div><span id="lbl-origin">Aguardando GPS...</span></div>
+                <div class="info-item"><div class="dot gray" id="dot-dest"></div><span id="lbl-dest">Destino não definido</span></div>
+            </div>
+        </div>
+        <div class="divider"></div>
+        <button class="btn" id="btn-search" disabled>CALCULAR ROTA MAIS SEGURA</button>
+    </div>
+</div>
+
+<div id="hint">Clique no mapa para definir o ponto</div>
+
+<div id="results">
+    <div class="results-header">
+        <span>Rotas Recomendadas</span>
+        <div class="dot-row">
+            <i style="background:#00C853"></i>
+            <i style="background:#FF6D00"></i>
+            <i style="background:#D50000"></i>
+        </div>
+    </div>
+    <div class="results-body" id="results-list"></div>
+    <div class="results-footer">Ordenado por índice de segurança</div>
+</div>
+
+<div id="map"></div>
+
+<script>
+    const map = L.map('map').setView([-22.9068, -43.1729], 13)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map)
+
+    let originMarker = null, destMarker = null
+    let origin = null, destination = null
+    let mode = null, routeLayers = []
+
+    const btnOrigin   = document.getElementById('btn-origin')
+    const btnDest     = document.getElementById('btn-dest')
+    const btnSearch   = document.getElementById('btn-search')
+    const lblOrigin   = document.getElementById('lbl-origin')
+    const lblDest     = document.getElementById('lbl-dest')
+    const dotOrigin   = document.getElementById('dot-origin')
+    const dotDest     = document.getElementById('dot-dest')
+    const hint        = document.getElementById('hint')
+    const results     = document.getElementById('results')
+    const resultsList = document.getElementById('results-list')
+
+    const colors = ['#00C853', '#FF6D00', '#D50000']
+
+    function setMode(m) {
+        mode = m
+        map.getContainer().style.cursor = m ? 'crosshair' : ''
+        hint.style.display = m ? 'block' : 'none'
+        btnOrigin.style.background   = m === 'origin'      ? '#F57F17' : '#003399'
+        btnOrigin.style.borderColor  = m === 'origin'      ? '#F57F17' : '#003399'
+        btnDest.style.background     = m === 'destination' ? '#F57F17' : '#fff'
+        btnDest.style.color          = m === 'destination' ? '#fff'    : '#CC0000'
+        btnDest.style.borderColor    = m === 'destination' ? '#F57F17' : '#CC0000'
+        btnOrigin.textContent = m === 'origin'      ? '✕ Cancelar' : '● Origem'
+        btnDest.textContent   = m === 'destination' ? '✕ Cancelar' : '● Destino'
+    }
+
+    function markerIcon(color) {
+        return L.divIcon({
+            className: '',
+            html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 0 1.5px ${color}"></div>`,
+            iconAnchor: [6, 6]
+        })
+    }
+
+    function setOrigin(lat, lon) {
+        origin = [lon, lat]
+        if (originMarker) map.removeLayer(originMarker)
+        originMarker = L.marker([lat, lon], { icon: markerIcon('#003399') }).addTo(map).bindPopup('<b>Origem</b>')
+        lblOrigin.textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`
+        dotOrigin.className = 'dot blue'
+        checkReady()
+    }
+
+    function setDestination(lat, lon) {
+        destination = [lon, lat]
+        if (destMarker) map.removeLayer(destMarker)
+        destMarker = L.marker([lat, lon], { icon: markerIcon('#CC0000') }).addTo(map).bindPopup('<b>Destino</b>')
+        lblDest.textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`
+        dotDest.className = 'dot red'
+        checkReady()
+    }
+
+    function checkReady() { btnSearch.disabled = !(origin && destination) }
+
+    function parseWKT(wkt) {
+        if (wkt.startsWith('MULTILINESTRING')) {
+            return wkt.replace('MULTILINESTRING (','').replace(/\)$/,'').split('),(').flatMap(p =>
+                p.replace(/[()]/g,'').trim().split(',').map(c => {
+                    const [lng, lat] = c.trim().split(' ')
+                    return [parseFloat(lat), parseFloat(lng)]
+                })
+            )
+        }
+        return wkt.replace('LINESTRING (','').replace(')','').split(',').map(c => {
+            const [lng, lat] = c.trim().split(' ')
+            return [parseFloat(lat), parseFloat(lng)]
+        })
+    }
+
+    function parsePoint(wkt) {
+        const p = wkt.replace('POINT (','').replace(')','').trim().split(' ')
+        return [parseFloat(p[1]), parseFloat(p[0])]
+    }
+
+    function showRoutes(routes) {
+        routeLayers.forEach(l => map.removeLayer(l))
+        routeLayers = []
+
+        const top3   = routes.slice(0, 3)
+        const ranks  = ['rank-1','rank-2','rank-3']
+        const labels = ['Mais segura','2ª mais segura','3ª mais segura']
+        const nums   = ['1','2','3']
+
+        top3.forEach((r, i) => {
+            if (r.shape) {
+                const line = L.polyline(parseWKT(r.shape), {
+                    color: colors[i], weight: 5, opacity: 0.85
+                }).addTo(map).bindPopup(`<b>Linha ${r.route_short_name}</b><br>${r.route_long_name}`)
+                routeLayers.push(line)
+            }
+            if (r.start_pt) {
+                const m = L.circleMarker(parsePoint(r.start_pt), {
+                    color: '#fff', fillColor: colors[i], fillOpacity: 1, radius: 7, weight: 2
+                }).addTo(map).bindPopup(`<b>Embarque</b><br>Linha ${r.route_short_name}`)
+                routeLayers.push(m)
+            }
+            if (r.end_pt) {
+                const m = L.circleMarker(parsePoint(r.end_pt), {
+                    color: colors[i], fillColor: '#fff', fillOpacity: 1, radius: 7, weight: 2
+                }).addTo(map).bindPopup(`<b>Desembarque</b><br>Linha ${r.route_short_name}`)
+                routeLayers.push(m)
+            }
+        })
+
+        if (routeLayers.length > 0) map.fitBounds(L.featureGroup(routeLayers).getBounds(), { padding: [50, 50] })
+
+        resultsList.innerHTML = top3.map((r, i) => `
+            <div class="route-card ${ranks[i]}">
+                <div class="route-badge">${nums[i]}</div>
+                <div class="route-info">
+                    <div class="route-line-num">Linha ${r.route_short_name}</div>
+                    <div class="route-name">${r.route_long_name}</div>
+                    <div class="route-label">${labels[i]}</div>
+                </div>
+            </div>
+        `).join('')
+
+        results.style.display = 'block'
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            pos => { map.setView([pos.coords.latitude, pos.coords.longitude], 15); setOrigin(pos.coords.latitude, pos.coords.longitude) },
+            err => {
+                let msg = 'Não foi possível obter sua localização.'
+                if (err.code === 1) msg += '\n\nPermissão negada.'
+                if (err.code === 2) msg += '\n\nLocalização indisponível.'
+                if (err.code === 3) msg += '\n\nTempo esgotado.'
+                msg += '\n\nUse o botão "Origem" para definir manualmente.'
+                alert(msg)
+                lblOrigin.textContent = 'Use o botão para definir'
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        )
+    } else {
+        alert('Seu navegador não suporta geolocalização.')
+    }
+
+    btnOrigin.addEventListener('click', () => setMode(mode === 'origin'      ? null : 'origin'))
+    btnDest.addEventListener('click',   () => setMode(mode === 'destination' ? null : 'destination'))
+
+    map.on('click', e => {
+        const { lat, lng } = e.latlng
+        if (mode === 'origin')           { setOrigin(lat, lng);      setMode(null) }
+        else if (mode === 'destination') { setDestination(lat, lng); setMode(null) }
+    })
+
+    btnSearch.addEventListener('click', async () => {
+        btnSearch.textContent = 'CALCULANDO...'
+        btnSearch.disabled = true
+        results.style.display = 'none'
+        try {
+            const res = await fetch(
+                `http://127.0.0.1:5000/secure_bus_routes?origin=${encodeURIComponent(origin[0]+','+origin[1])}&destination=${encodeURIComponent(destination[0]+','+destination[1])}`
+            )
+            const routes = await res.json()
+            if (routes.error) alert('Aviso: ' + routes.error)
+            else if (!routes.length) alert('Nenhuma rota encontrada entre os dois pontos.')
+            else showRoutes(routes)
+        } catch(e) {
+            alert('Erro ao buscar rotas. Verifique se o servidor está rodando.')
+        }
+        btnSearch.textContent = 'CALCULAR ROTA MAIS SEGURA'
+        btnSearch.disabled = false
+    })
+</script>
+</body>
+</html>
