@@ -1,4 +1,4 @@
-**# RotaRio 🚌
+# RotaRio 🚌
 
 Sistema de recomendação de rotas de ônibus seguras para o Rio de Janeiro.
 
@@ -223,4 +223,4 @@ GET http://127.0.0.1:5000/secure_bus_routes?origin=-43.2282,-22.9121&destination
 
 - **Python** — Flask, GeoPandas, Shapely, Pandas, H3
 - **JavaScript** — Leaflet.js
-- **Dados** — GTFS Rio (SMTR), Fogo Cruzado**
+- **Dados** — GTFS Rio (SMTR), Fogo Cruzado
