@@ -99,6 +99,4 @@ class BusRouteFinder():
 
         return secure_routes
 
-
-
     

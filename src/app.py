@@ -46,7 +46,7 @@ def secure_bus_routes():
         secure_routes = router.find_secure_route(gdf_relevant=gdf_relevant,close_routes=close_routes)
         secure_busses = router.find_bus(df_matching_rt=df_matching_rt, routes=secure_routes)
 
-        secure_busses = secure_busses.drop_duplicates(subset=["shape_id"])#drop duplicates
+        
 
         # adiciona a geometria das rotas
         secure_busses = secure_busses.merge(
@@ -54,6 +54,8 @@ def secure_bus_routes():
         on="shape_id",
         how="left"
         )
+
+        secure_busses = secure_busses.drop_duplicates(subset=["route_long_name"])#drop duplicates
 
         # converte LineString para WKT string
         secure_busses["shape"] = secure_busses["shape"].apply(lambda x: x.wkt if x != "" else "")
