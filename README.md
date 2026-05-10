@@ -11,7 +11,7 @@ A aplicação cruza dados de mobilidade urbana com dados de criminalidade para s
 ## Como funciona
 
 1. O usuário informa sua **origem** (via GPS ou clique no mapa) e seu **destino**
-2. O sistema busca rotas de ônibus que passam próximas aos dois pontos — com buffer crescente de **300m → 500m → 1km**
+2. O sistema busca rotas de ônibus que passam próximas aos dois pontos — com buffer crescente de **300m → 500m → 1km → 2km**
 3. Apenas rotas que passam **nos dois pontos** são consideradas (interseção)
 4. Cada rota recebe um **índice de risco** baseado em ocorrências do Fogo Cruzado nas áreas por onde passa
 5. As **3 rotas mais seguras** são exibidas no mapa em verde, laranja e vermelho
